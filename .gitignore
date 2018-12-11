@@ -1,0 +1,12 @@
+upload
+__pycache__
+ipgold-offline.zip
+ipgold-offline1.zip
+flaskapp
+csv
+temp
+test.py
+.idea
+ipgold-offline
+ipgold-offline1
+*.zip
