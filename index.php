@@ -107,7 +107,8 @@
 		foreach ($names as $key => $value) {			
 			CSV2DB_Unit($value, $model);
 			$model->isHeader = false;			
-		}			
+		}
+		deleteDir('temp');
 	}
 
 	function getModifiedDate($filename){
