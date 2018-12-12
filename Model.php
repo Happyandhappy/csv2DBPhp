@@ -79,9 +79,10 @@ class Model
 	 * @param 	: tableName(string)
 	 * @return 	: boolean
 	 */	
-	public function checkTableExists(){
-		$querydb = "CREATE DATABASE IF NOT EXISTS " . DB_NAME;
-		$con = mysqli_connect(DB_HOST, DB_USER, DB_PASS);
+	public function checkTableExists(){		
+		$querydb = "CREATE DATABASE IF NOT EXISTS " . DB_NAME;				
+		$con = mysqli_connect(DB_HOST, DB_USER, DB_PASS) or die("Could not connect!". mysqli_connetion_error());	
+		
 		if (mysqli_query($con, $querydb)) {
 			$this->Dbcon = new mysqli(DB_HOST, DB_USER,DB_PASS,DB_NAME); // db instance
 			if(mysqli_connect_error()) {
@@ -91,8 +92,7 @@ class Model
 		} else {
 		    echo "Error: " . $sql . "<br>" . mysqli_error($con);
 		    exit;
-		}
-
+		}		
 		$query  = "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = '{$this->Name}'";
 		$result = $this->Dbcon->query($query);
 		$count  = $result->num_rows;
@@ -122,20 +122,23 @@ class Model
 	 * @param 	: none
 	 * @return 	: none
 	 */	
-	public function creatTable(){				
+	public function creatTable(){		
+
 		$query = "CREATE TABLE `{$this->Name}` (`{$this->fields[0]}` int(10) NOT NULL ,";
-		for ($i = 1; $i < count($this->fields) ; $i++){			
+		for ($i = 1; $i < count($this->fields) ; $i++){
 			$query .= "`{$this->fields[$i]}` {$this->types[$i]}, ";				
 		}
-		if ($this->Name == 'IPGOLD204' || $this->Name=='IPGOLD202'|| $this->Name=='IPGOLD207'|| $this->Name=='IPGOLD208'){
-			$query .= "PRIMARY KEY (`{$this->fields[0]}`, `{$this->fields[1]}`, `{$this->fields[2]}`) ) ENGINE=InnoDB DEFAULT CHARSET=latin1;";	
-		}else if ($this->Name=='IPGOLD220'){
-			$query .= "PRIMARY KEY (`{$this->fields[0]}`, `{$this->fields[1]}`) ) ENGINE=InnoDB DEFAULT CHARSET=latin1;";	
-		}
-		else $query .= "PRIMARY KEY (`{$this->fields[0]}`) ) ENGINE=InnoDB DEFAULT CHARSET=latin1;";		
+		// if ($this->Name == 'IPGOLD204' || $this->Name=='IPGOLD202'|| $this->Name=='IPGOLD207'|| $this->Name=='IPGOLD208'){
+		// 	$query .= "PRIMARY KEY (`{$this->fields[0]}`, `{$this->fields[1]}`, `{$this->fields[2]}`) ) ENGINE=InnoDB DEFAULT CHARSET=latin1;";	
+		// }else if ($this->Name=='IPGOLD220'){
+		// 	$query .= "PRIMARY KEY (`{$this->fields[0]}`, `{$this->fields[1]}`) ) ENGINE=InnoDB DEFAULT CHARSET=latin1;";	
+		// }
+		//else 
+		$query .= "PRIMARY KEY (`{$this->fields[0]}`) ) ENGINE=InnoDB DEFAULT CHARSET=latin1;";		
 		if (!$this->checkTableExists($this->Name)){
-			$this->runQuery($query);
+			$this->runQuery($query);			
 		}
+		$this->runQuery("SET sql_mode='';");
 	}
 
 	/**
@@ -245,7 +248,7 @@ class IPGOLD201 extends Model
 		$pa = str_replace('\\',"/",getcwd());
 		$path = $pa . "/" . str_replace("\\","//", $path);		
 		$query1 = "LOAD DATA LOCAL INFILE '{$path}' REPLACE INTO TABLE `IPGOLD201` FIELDS TERMINATED BY ','  optionally enclosed by '".'"' ."'  LINES TERMINATED BY '".'\n'."' IGNORE 1 LINES;";
-		$query2 = "LOAD DATA LOCAL INFILE '{$path}' REPLACE INTO TABLE `IPGOLD201` FIELDS TERMINATED BY ','  optionally enclosed by '".'"' ."'  LINES TERMINATED BY '".'\n'."';";		
+		$query2 = "LOAD DATA LOCAL INFILE '{$path}' REPLACE INTO TABLE `IPGOLD201` FIELDS TERMINATED BY ','  optionally enclosed by '".'"' ."'  LINES TERMINATED BY '".'\n'."';";				
 		parent::setQuery($query1, $query2);
 	}
 }
@@ -261,8 +264,8 @@ class IPGOLD202 extends Model
 		parent::__construct('IPGOLD202');
 		$this->types=array(
 			"INT",
-			"INT(10) DEFAULT NULL",
-			"INT(10) DEFAULT NULL",
+			"INT(10) DEFAULT NULL UNIQUE",
+			"INT(10) DEFAULT NULL UNIQUE",
 			"TEXT",
 			"INT(2) DEFAULT NULL",
 			"INT(2) DEFAULT NULL",
@@ -436,8 +439,8 @@ class IPGOLD204 extends Model
 		parent::__construct('IPGOLD204');
 		$this->types=array(
 			"INT",			
-			"INT(10) DEFAULT NULL",
-			"INT(10) DEFAULT NULL",
+			"INT(10) DEFAULT NULL UNIQUE",
+			"INT(10) DEFAULT NULL UNIQUE",
 			"TEXT",
 		);
 		$this->fields = array(
@@ -507,8 +510,8 @@ class IPGOLD207 extends Model
 		parent::__construct('IPGOLD207');
 		$this->types=array(
 			"INT",			
-			"INT(10) DEFAULT NULL",
-			"INT(10) DEFAULT NULL",
+			"INT(10) DEFAULT NULL UNIQUE",
+			"INT(10) DEFAULT NULL UNIQUE",
 		);
 		$this->fields = array(
 			'tm_number',
@@ -538,8 +541,8 @@ class IPGOLD208 extends Model
 		parent::__construct('IPGOLD208');
 		$this->types=array(
 			"INT",			
-			"INT(10) DEFAULT NULL",
-			"INT(10) DEFAULT NULL",
+			"INT(10) DEFAULT NULL UNIQUE",
+			"INT(10) DEFAULT NULL UNIQUE",
 			"TEXT",
 			"INT(10) DEFAULT NULL",
 			"DATE",
@@ -682,7 +685,7 @@ class IPGOLD220 extends Model
 		parent::__construct('IPGOLD220');
 		$this->types=array(
 			"INT",			
-			"INT(10) DEFAULT NULL",
+			"INT(10) DEFAULT NULL UNIQUE",
 			"DATE",
 			"TEXT",
 			"TEXT",

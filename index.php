@@ -1,9 +1,10 @@
 <?php
+
 	set_time_limit(100000);
 	require_once('Model.php');
-
+	
 	// download zip file from url
-	function PullZip($url){
+	function PullZip($url){		
 		$destination = "ipgold". uniqid(time(), true) .".zip";
 		$fh = fopen($destination, 'w');
 		$ch = curl_init();
@@ -13,7 +14,7 @@
 		curl_exec($ch);
 		curl_close($ch);
 		fclose($fh);
-
+		chmod($destination, 0777);
 		return $destination;
 	}
 
@@ -57,6 +58,7 @@
 
 	# Unit to store splitted file data to mysql
 	function CSV2DB_Unit($file, $model){
+		echo $file . "<br>";
 		$model->creatTable();
 		$model->setfilepath($file);
 		$model->importCSV();
@@ -67,7 +69,8 @@
 	    $dirName = 'temp';
 	    if (is_dir($dirName))
 	    	deleteDir($dirName);	    
-		mkdir($dirName, 0777, true);
+		mkdir($dirName);
+		chmod($dirName, 0777);		
 	    $names = array();
 	    $name = 0;
 
@@ -83,25 +86,28 @@
 			if ($cnt > 100000){
 				$cnt = 0;
 				$name++;
-				fclose($file_out);
+				fclose($file_out);				
 				$file_out = fopen($dirName . "/" . (string)$name, "a");
 				array_push($names, $dirName."/".(string)$name);
-			}  	
+			}
 		}
 
 		fclose($file_out);
 		fclose($file);
-		return $names;
+		foreach ($names as $name){
+			chmod($name, 0777);
+		}
+		
+		return $names;		
 	}
 
 	function CSVtoDB($dir, $csv, $model){		
-		$filePath = $dir . "/" . $csv;		
+		$filePath = $dir . "/" . $csv;
 		$names = splitCSV($filePath);
-		echo $filePath."<br>";
 		foreach ($names as $key => $value) {			
 			CSV2DB_Unit($value, $model);
 			$model->isHeader = false;			
-		}		
+		}			
 	}
 
 	function getModifiedDate($filename){
@@ -146,16 +152,21 @@
 	}
 
 	function main(){
+		
 		// pull zip file from server
-		// $zipfile = PullZip(ZIP_URL);
+		$zipfile = PullZip(ZIP_URL);		
 		// create folder
-		if (!is_dir(CSV_DIR))mkdir (CSV_DIR, 0755);
+		if (!is_dir(CSV_DIR))mkdir(CSV_DIR, 0777);
+		chmod(CSV_DIR, 0777);
 		// extract zip file 
-		// Unzip($zipfile,'./'.CSV_DIR);
+		Unzip($zipfile,'./'.CSV_DIR);		
 		
 		// get all csv file names 
 		$filelist = getCSVfilelist('./'.CSV_DIR);
-		
+		foreach ($filelist as $file){
+			chmod(CSV_DIR . '/' . $file, 0777);
+		}
+
 		// import csv data to db
 		for ($i = 0; $i < count($filelist); $i++){
 			$modelName = str_replace("IPGOLD", '', explode(".",$filelist[$i])[0]);
@@ -204,4 +215,3 @@
 	}
 
 	main();
-	
